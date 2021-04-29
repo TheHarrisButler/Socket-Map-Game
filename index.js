@@ -1,7 +1,7 @@
 const http = require("http");
 const app = require("express")();
 
-app.get("/", (req,res) => res.sendFile(__dirname + "/index.html"))
+app.get("/", (req,res) => res.sendFile(__dirname + "/public/index.html"))
 app.listen(4001, () => console.log("Listening on http port 4001")); 
 
 const websocketServer = require("websocket").server; 
