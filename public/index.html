@@ -87,7 +87,7 @@
                                   <input type="text" class="form-control" id="stateInput" placeholder="State">
                                 </div>
                                 <p></p>
-                                <button type="submit" id="addressBtn" class="btn btn-primary">Submit</button>
+                                <button type="button" id="addressBtn" class="btn btn-primary">Submit</button>
                               </form>
                         </div>
                     </div>
@@ -98,6 +98,8 @@
         <script>
             let clientId = null;
             let gameId = null;
+            let lat = 37.86926;
+            let lng = -122.254811;
 
             let ws = new WebSocket("ws://localhost:4000"); 
             const createBtn = document.getElementById("createBtn");
@@ -113,7 +115,7 @@
                 panorama = new google.maps.StreetViewPanorama(
                     document.getElementById("street-view"),
                     {
-                    position: { lat: 37.86926, lng: -122.254811 },
+                    position: { lat: lat, lng: lng },
                     disableDefaultUI: true,
                     pov: { heading: 165, pitch: 0 },
                     zoom: 1,
@@ -147,7 +149,20 @@
             });
             
             addressBtn.addEventListener("click", e => {
-                
+                if (gameId === null) {
+                    console.log("No game created");
+                }
+                else{
+                    const payLoad = {
+                    "method": "set",
+                    "street": streetInput.value,
+                    "city": cityInput.value, 
+                    "state": stateInput.value, 
+                    "gameId": gameId
+                    }
+
+                    ws.send(JSON.stringify(payLoad)); 
+                }
             })
 
             ws.onmessage = message => { 
@@ -174,9 +189,28 @@
                         const d = document.createElement("div");
                         d.style.width = "200px"; 
                         d.style.background = c.color; 
-                        d.textContent = c.clientId; 
+                        d.textContent = c.score; 
                         divPlayers.appendChild(d); 
                     })
+                }
+
+                if (response.method === "set") {
+                    const game = response.game;
+                    lat = response.lat; 
+                    lng = response.lng; 
+
+                    initialize();
+
+                    // while(divPlayers.firstChild)
+                    //     divPlayers.removeChild(divPlayers.firstChild); 
+
+                    // game.clients.forEach(c => {
+                    //     const d = document.createElement("div");
+                    //     d.style.width = "200px"; 
+                    //     d.style.background = c.color; 
+                    //     d.textContent = c.score; 
+                    //     divPlayers.appendChild(d); 
+                    // })
                 }
             }
         </script>

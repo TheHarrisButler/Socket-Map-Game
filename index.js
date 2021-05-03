@@ -1,5 +1,6 @@
 const http = require("http");
 const app = require("express")();
+const fetch = require("node-fetch");
 
 app.get("/", (req,res) => res.sendFile(__dirname + "/public/index.html"))
 app.listen(4001, () => console.log("Listening on http port 4001")); 
@@ -10,6 +11,7 @@ httpServer.listen(4000, () => console.log("Listening on port 4000"));
 
 const clients = {};
 const games = {};
+let correctState = null;
 
 const wsServer = new websocketServer({
     "httpServer": httpServer
@@ -51,6 +53,7 @@ wsServer.on("request", request => {
             const clientId = result.clientId;
             const gameId = result.gameId;
             const game = games[gameId];
+
             
             if  (game.clients.length >= 2) {
                 //sorry max players reached
@@ -61,7 +64,8 @@ wsServer.on("request", request => {
             
             game.clients.push({
                 "clientId": clientId,
-                "color": color
+                "color": color, 
+                "score": 0
             })
 
             const payLoad = {
@@ -73,6 +77,45 @@ wsServer.on("request", request => {
             game.clients.forEach(c => {
                 clients[c.clientId].connection.send(JSON.stringify(payLoad)); 
             })
+        }
+
+        if (result.method === "set") {
+
+            const gameId = result.gameId;
+            const game = games[gameId];
+            const street = result.street;
+            const city = result.city;
+            const state = result.state;
+            
+
+            correctState = state;
+            const newStreet = street.split(' ').join('+');
+            const newCity = city.split(' ').join('+');
+            const url = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + newStreet + ',' + newCity + ',' + state + '&key=AIzaSyA0f-uBcsgu1PQh0i6wdxe3FDSsgUo63_k'; 
+            //TODO: Figure out game state in terms of score and such
+
+            //autheticate adress with ship engine
+
+            //Send a request to geocode api
+            fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + newStreet + ',' + newCity + ',' + state + '&key=AIzaSyA0f-uBcsgu1PQh0i6wdxe3FDSsgUo63_k')
+                .then(res => res.json())
+                .then(json => {
+                    let lat = json.results[0].geometry.location.lat;
+                    let lng = json.results[0].geometry.location.lng;
+
+                                //Send longitude and latitude back to client
+                    const payLoad = {
+                        "method": "set",
+                        "lat": lat,
+                        "lng": lng,
+                        "game": game
+                    }
+                    console.log(lat);
+                    
+                    game.clients.forEach(c => {
+                        clients[c.clientId].connection.send(JSON.stringify(payLoad)); 
+                    })
+                });
         }
 
     })
