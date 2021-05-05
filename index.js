@@ -21,7 +21,8 @@ wsServer.on("request", request => {
     //connect
     const connection = request.accept(null, request.origin);
     connection.on('open', () => console.log('opened!')); 
-    connection.on('close', () => console.log('closed!')); 
+    connection.on('close', () => console.log('closed!'));
+
     connection.on('message', message => {
         
         const result = JSON.parse(message.utf8Data);
@@ -62,8 +63,9 @@ wsServer.on("request", request => {
 
             const color = {"0": "Green", "1": "Red"}[game.clients.length];
             
-            game.clients.push({
+            game.clients.push({ 
                 "clientId": clientId,
+                "name": "Player " + color,
                 "color": color, 
                 "score": 0
             })
@@ -81,6 +83,7 @@ wsServer.on("request", request => {
 
         if (result.method === "set") {
 
+            const clientId = result.clientId;
             const gameId = result.gameId;
             const game = games[gameId];
             const street = result.street;
@@ -91,7 +94,6 @@ wsServer.on("request", request => {
             correctState = state;
             const newStreet = street.split(' ').join('+');
             const newCity = city.split(' ').join('+');
-            const url = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + newStreet + ',' + newCity + ',' + state + '&key=AIzaSyA0f-uBcsgu1PQh0i6wdxe3FDSsgUo63_k'; 
             //TODO: Figure out game state in terms of score and such
 
             //autheticate adress with ship engine
@@ -103,21 +105,57 @@ wsServer.on("request", request => {
                     let lat = json.results[0].geometry.location.lat;
                     let lng = json.results[0].geometry.location.lng;
 
-                                //Send longitude and latitude back to client
+                    //Send longitude and latitude back to client
                     const payLoad = {
                         "method": "set",
                         "lat": lat,
                         "lng": lng,
                         "game": game
                     }
-                    console.log(lat);
                     
                     game.clients.forEach(c => {
-                        clients[c.clientId].connection.send(JSON.stringify(payLoad)); 
+                        if(c.clientId != clientId) {
+                            clients[c.clientId].connection.send(JSON.stringify(payLoad)); 
+                        }
                     })
                 });
         }
 
+        if (result.method === "guess") {
+            //client A to have the ability to guess and client B only have the ability to send a address.
+            const clientId = result.clientId; 
+            const gameId = result.gameId;
+            const game = games[gameId]; 
+            const guess = result.guess;
+
+            let payLoad = {};
+
+            if (guess === correctState) {
+
+                game.clients.forEach(c => {
+                    if(c.clientId === clientId) {
+                        c.score += 1; 
+                    }
+                })
+
+                payLoad = {
+                    "method":"guess",
+                    "message": "Correct!", 
+                    "game": game, 
+                }
+            } else {
+                payLoad = {
+                    "method":"guess",
+                    "message": "Incorrect.", 
+                    "game": game, 
+                }
+            }
+
+            game.clients.forEach(c => {
+                clients[c.clientId].connection.send(JSON.stringify(payLoad)); 
+            }); 
+            
+        }
     })
 
     //generate a new clientID
