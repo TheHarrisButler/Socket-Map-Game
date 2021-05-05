@@ -1,8 +1,10 @@
 const http = require("http");
-const app = require("express")();
+const express = require("express");
 const fetch = require("node-fetch");
+const app = express();
 
-app.get("/", (req,res) => res.sendFile(__dirname + "/public/index.html"))
+app.get('/', (req,res) => res.sendFile(__dirname + "/index.html"));
+app.use(express.static('public')); 
 app.listen(4001, () => console.log("Listening on http port 4001")); 
 
 const websocketServer = require("websocket").server; 
@@ -131,18 +133,24 @@ wsServer.on("request", request => {
             let payLoad = {};
 
             if (guess === correctState) {
-
                 game.clients.forEach(c => {
                     if(c.clientId === clientId) {
-                        c.score += 1; 
+                        c.score += 1;
+                        if(c.score >= 3) {
+                            payLoad = {
+                                "method":"guess",
+                                "message": "Winner!", 
+                                "game": game, 
+                            }
+                        } else {
+                            payLoad = {
+                                "method":"guess",
+                                "message": "Correct!", 
+                                "game": game, 
+                            }
+                        }
                     }
                 })
-
-                payLoad = {
-                    "method":"guess",
-                    "message": "Correct!", 
-                    "game": game, 
-                }
             } else {
                 payLoad = {
                     "method":"guess",
