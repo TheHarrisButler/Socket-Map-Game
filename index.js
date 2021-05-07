@@ -29,7 +29,7 @@ const wsServer = new websocketServer({
     "httpServer": httpServer
 });
 
-httpServer.listen(4001, () => console.log(`Listening on...${PORT}`));
+httpServer.listen(PORT, () => console.log(`Listening on...${PORT}`));
 
 //Some state variables
 const clients = {};
