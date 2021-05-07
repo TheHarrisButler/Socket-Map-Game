@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>The Map Game</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+    </head>
+    <body>
+        <header>
+            <nav class="navbar navbar-dark bg-dark">
+                <div class="container-fluid">
+                    <a class="navbar-brand">The Map Game</a>
+                    <a class="nav-link active" aria-current="page" href="/">Home</a>
+                </div>
+            </nav>
+        </header>
+        
+        
+        <main>
+            <div class="px-4 pt-5 my-5 text-center">
+                <h1 class="display-4 fw-bold">How To Play</h1>
+                <div class="col-lg-6 mx-auto">
+                    <p class="lead mb-4">
+                       <strong>Welcome to The Map Game!</strong> A game where you and your opponents send eachother a google maps street view 
+                       of an unknown location. The goal is to guess what US state that location is in. You get one point for each correct guess. <strong>First one to three 
+                        points wins!</strong> The following is a complete step-by-step guide to understanding how to play. This guide will 
+                        walk you through: creating a game, joining a game, submitting an address, and finally
+                       submittting a guess. If you want to learn a little more about how this game was created or are just wondering 
+                       what the catylist for creating this game was, please head over to the blog tab. <strong>I hope you enjoy!</strong>
+                    </p>
+                </div>
+                <div class="container px-5">
+                    <img src="./assets/Main-Hero.png" class="img-fluid border rounded-3 shadow-lg mb-4" width="700" height="500" loading="lazy">
+                </div>
+            </div>
+            <div class="container col-xxl-8 px-4 py-5">
+                <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
+                    <div class="col-10 col-sm-8 col-lg-6">
+                        <img src="./assets/Create-Game.png" class="d-block mx-lg-auto img-fluid border shadow-lg" width="700" height="500" loading="lazy">
+                    </div>
+                    <div class="col-lg-6">
+                        <h1 class="display-5 fw-bold lh-1 mb-3">Step 1: Creating a game</h1>
+                        <p class="lead">
+                            If you haven't yet been invited to join a game (i.e. you aren't very popular) you must first create a game. 
+                            From the home page, navigate to the hamburger menu at the top of your screen <strong>(hint: its the 
+                            same hamburger menu you used to get to these amazing instructions)</strong>. From there click the 
+                            "Create Game" button. A unique game id will appear bellow the join game button. <strong>Send this id to one of your
+                            friends so they can join your newly created game!</strong>
+                        </p>
+                    </div>
+                </div>
+                <p></p>
+                <div class="row flex-lg-row-reverse align-items-center g-5 g-5 py-5">
+                    <div class="col-lg-6">
+                        <h1 class="display-5 fw-bold lh-1 mb-3">Step 2: Join a game</h1>
+                        <p class="lead">
+                            After creating your new game, a unique game id will appear below the "Join Game" input, simply paste the game id into the form 
+                            and click the "Join Game" button to join the lobby. If, however you were sent a game
+                            id from a friend simply paste the id into the "Join Game" form and click the "Join Game" button. After joining
+                            the lobby you should see you player name and current score in the players card. The name and color is based on 
+                            the time you joined the game. The first too join gets green and the second to join gets red. <strong>Awesome!</strong> You are 
+                            now ready to start the game!  
+                        </p>
+                    </div>
+                    <div class="col-10 col-sm-8 col-lg-6">
+                        <img src="./assets/Join-Game.png" class="d-block mx-lg-auto img-fluid border shadow-lg" width="700" height="500" loading="lazy">
+                    </div>
+                </div>
+                <div class="row flex-lg-row-reverse align-items-center g-5 g-5 py-5">
+                    <div class="col-10 col-sm-8 col-lg-6">
+                        <img src="./assets/Submitt-Address.png" class="d-block mx-lg-auto img-fluid border shadow-lg" width="700" height="500" loading="lazy">
+                    </div>
+                    <div class="col-lg-6">
+                        <h1 class="display-5 fw-bold lh-1 mb-3">Step 3: Submitting an address</h1>
+                        <p class="lead">
+                            If you are the game creator then you start the game by submitting an address. Simply input a desired address in the "Address Form" and 
+                            click submit. From there the address is sent to your opponent in the form of a google maps street view <strong>(the street view interface only 
+                            changes upon recieving an address from an opponent not after submitting an address)</strong>. While it would be cool to send a 
+                            google street view of the Death Star or Mars <strong>as of right now only valid United States addresses are accepted.</strong> 
+                        </p>
+                        <ul class="icon-list">
+                            <li>Valid United States addresses only</li>
+                            <li>Street address <strong>cannot</strong> contain appartment or office numbers (i.e. 3800 N Lamar Blvd #220)</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="row flex-lg-row-reverse align-items-center g-5 g-5 py-5">
+                    <div class="col-lg-6">
+                        <h1 class="display-5 fw-bold lh-1 mb-3">Step 4: Submit a guess</h1>
+                        <p class="lead">
+                            After your opponent sends an address, your google maps street view interface will update to the appropriate location. From there
+                            you are free to move around and find clues as to which state the address is located in. Once you feel you are ready to make a guess
+                            click the drop down menu and select a state. If you are correct you will see your score increase by one and a congratulatory message.
+                            <strong>Remember the first player to 3 points wins!</strong>
+                        </p>
+                    </div>
+                    <div class="col-10 col-sm-8 col-lg-6">
+                        <img src="./assets/Submit-Guess.png" class="d-block mx-lg-auto img-fluid border shadow-lg" width="700" height="500" loading="lazy">
+                    </div>
+                </div>
+            </div>
+            
+        </main>
+
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js" integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf" crossorigin="anonymous"></script>
+    </body>
+</html>

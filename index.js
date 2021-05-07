@@ -1,24 +1,103 @@
 const http = require("http");
 const express = require("express");
 const fetch = require("node-fetch");
+global.Headers = fetch.Headers;
+
+//port number and routes
+let PORT = process.env.PORT;
+const index = require('./routes/index'); 
+const instructions = require("./routes/instructions");
+
+//express server
 const app = express();
 
-app.get('/', (req,res) => res.sendFile(__dirname + "/index.html"));
-app.use(express.static('public')); 
-app.listen(4001, () => console.log("Listening on http port 4001")); 
+//define routes for express server
+app.use('/', index)
+app.use('/instructions', instructions); 
+app.use(express.static('public'));
 
+//PORTS for express server
+if (PORT == null || PORT == "") {
+    PORT = 4001;
+}
+
+//Websocket Server
 const websocketServer = require("websocket").server; 
-const httpServer = http.createServer(); 
-httpServer.listen(4000, () => console.log("Listening on port 4000")); 
-
-const clients = {};
-const games = {};
-let correctState = null;
+const httpServer = http.createServer(app); 
 
 const wsServer = new websocketServer({
     "httpServer": httpServer
 });
 
+httpServer.listen(4001, () => console.log(`Listening on...${PORT}`));
+
+//Some state variables
+const clients = {};
+const games = {};
+let correctState = null;
+const states = {
+    "AL": "Alabama",
+    "AK": "Alaska",
+    "AS": "American Samoa",
+    "AZ": "Arizona",
+    "AR": "Arkansas",
+    "CA": "California",
+    "CO": "Colorado",
+    "CT": "Connecticut",
+    "DE": "Delaware",
+    "DC": "District Of Columbia",
+    "FM": "Federated States Of Micronesia",
+    "FL": "Florida",
+    "GA": "Georgia",
+    "GU": "Guam",
+    "HI": "Hawaii",
+    "ID": "Idaho",
+    "IL": "Illinois",
+    "IN": "Indiana",
+    "IA": "Iowa",
+    "KS": "Kansas",
+    "KY": "Kentucky",
+    "LA": "Louisiana",
+    "ME": "Maine",
+    "MH": "Marshall Islands",
+    "MD": "Maryland",
+    "MA": "Massachusetts",
+    "MI": "Michigan",
+    "MN": "Minnesota",
+    "MS": "Mississippi",
+    "MO": "Missouri",
+    "MT": "Montana",
+    "NE": "Nebraska",
+    "NV": "Nevada",
+    "NH": "New Hampshire",
+    "NJ": "New Jersey",
+    "NM": "New Mexico",
+    "NY": "New York",
+    "NC": "North Carolina",
+    "ND": "North Dakota",
+    "MP": "Northern Mariana Islands",
+    "OH": "Ohio",
+    "OK": "Oklahoma",
+    "OR": "Oregon",
+    "PW": "Palau",
+    "PA": "Pennsylvania",
+    "PR": "Puerto Rico",
+    "RI": "Rhode Island",
+    "SC": "South Carolina",
+    "SD": "South Dakota",
+    "TN": "Tennessee",
+    "TX": "Texas",
+    "UT": "Utah",
+    "VT": "Vermont",
+    "VI": "Virgin Islands",
+    "VA": "Virginia",
+    "WA": "Washington",
+    "WV": "West Virginia",
+    "WI": "Wisconsin",
+    "WY": "Wyoming"
+}
+
+//start websocket server
 wsServer.on("request", request => {
     //connect
     const connection = request.accept(null, request.origin);
@@ -28,8 +107,6 @@ wsServer.on("request", request => {
     connection.on('message', message => {
         
         const result = JSON.parse(message.utf8Data);
-        
-        //Server has recieved a 
         
         //user create a new game
         if (result.method === "create") {
@@ -85,38 +162,92 @@ wsServer.on("request", request => {
 
         if (result.method === "set") {
 
+            //address variables
             const clientId = result.clientId;
             const gameId = result.gameId;
             const game = games[gameId];
             const street = result.street;
             const city = result.city;
             const state = result.state;
-            
 
+            //Ship Engine Variables
+            let headers = new Headers();
+            let options = {};
+            
+            //geocode variables
             correctState = state;
             const newStreet = street.split(' ').join('+');
             const newCity = city.split(' ').join('+');
-            //TODO: Figure out game state in terms of score and such
 
-            //autheticate adress with ship engine
+            //autheticate address with ship engine
+            headers.append("Host", "api.shipengine.com");
+            headers.append("API-Key", "TEST_Nk+KKTCqZX53RxFzFXxfCijIrp7X+7GaClGoQQGGG1A");
+            headers.append("Content-Type", "application/json");
 
-            //Send a request to geocode api
-            fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + newStreet + ',' + newCity + ',' + state + '&key=AIzaSyA0f-uBcsgu1PQh0i6wdxe3FDSsgUo63_k')
-                .then(res => res.json())
+            let raw = JSON.stringify([{"address_line1":street,"city_locality":city,"state_province":state,"country_code":"US"}]);
+
+            options = {
+                method: 'POST',
+                headers: headers,
+                body: raw,
+                redirect: 'follow'
+            }; 
+
+            fetch("https://api.shipengine.com/v1/addresses/validate", options)
+                .then(response => response.json())
                 .then(json => {
-                    let lat = json.results[0].geometry.location.lat;
-                    let lng = json.results[0].geometry.location.lng;
+                    console.log(json[0]);
+                    let status = json[0].status;
 
-                    //Send longitude and latitude back to client
-                    const payLoad = {
-                        "method": "set",
-                        "lat": lat,
-                        "lng": lng,
-                        "game": game
+                    console.log(status); 
+                    if (status === "verified")  {
+
+                        //Send a request to geocode api
+                        fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + newStreet + ',' + newCity + ',' + state + '&key=AIzaSyA0f-uBcsgu1PQh0i6wdxe3FDSsgUo63_k')
+                        .then(res => res.json())
+                        .then(json => {
+                            let lat = json.results[0].geometry.location.lat;
+                            let lng = json.results[0].geometry.location.lng;
+        
+                            //Send longitude and latitude back to client
+                            const payLoad = {
+                                "method": "set",
+                                "lat": lat,
+                                "lng": lng,
+                                "game": game
+                            }
+                            
+                            game.clients.forEach(c => {
+                                if(c.clientId != clientId) {
+                                    clients[c.clientId].connection.send(JSON.stringify(payLoad)); 
+                                }
+                            })
+                        });
+                    } else {
+                        //invalid address
+                        const payLoad = {
+                            "method": "failed",
+                            "message": "Invalid Address"
+                        }
+        
+                        game.clients.forEach(c => {
+                            if(c.clientId === clientId) {
+                                clients[c.clientId].connection.send(JSON.stringify(payLoad)); 
+                            }
+                        })
                     }
+                })
+                .catch(error => {
+                    console.log(error); 
                     
+                    //Geocode Error
+                    const payLoad = {
+                        "method": "failed",
+                        "message": "Invalid Address"
+                    }
+    
                     game.clients.forEach(c => {
-                        if(c.clientId != clientId) {
+                        if(c.clientId === clientId) {
                             clients[c.clientId].connection.send(JSON.stringify(payLoad)); 
                         }
                     })
@@ -140,14 +271,15 @@ wsServer.on("request", request => {
                             payLoad = {
                                 "method":"guess",
                                 "message": "Winner!", 
-                                "game": game, 
+                                "game": game,
+                                "state": states[correctState] 
                             }
                         } else {
                             payLoad = {
                                 "method":"guess",
                                 "message": "Correct!", 
                                 "game": game, 
-                            }
+                                "state": states[correctState]                            }
                         }
                     }
                 })
@@ -155,7 +287,8 @@ wsServer.on("request", request => {
                 payLoad = {
                     "method":"guess",
                     "message": "Incorrect.", 
-                    "game": game, 
+                    "game": game,
+                    "state": states[correctState]
                 }
             }
 

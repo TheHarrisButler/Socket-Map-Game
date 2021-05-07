@@ -3,12 +3,18 @@ let gameId = null;
 let lat = null;
 let lng = null;
 let myTurn = true;
+let addressSet = false;
 
-let ws = new WebSocket("ws://localhost:4000"); 
+//Socket Connection
+const HOST = location.origin.replace(/^http/, 'ws'); 
+let ws = new WebSocket("ws://localhost:4001");
+
+
 const createBtn = document.getElementById("createBtn");
 const joinBtn = document.getElementById("joinBtn");
 const txtgameId = document.getElementById("txtgameId");
 const divPlayers = document.getElementById("divPlayers");
+const gameidDiv = document.getElementById("gameidDiv");
 const divAlert = document.getElementById("divAlert");
 const streetInput = document.getElementById("streetInput");
 const cityInput = document.getElementById("cityInput");
@@ -53,27 +59,38 @@ function successAlert(n) {
 
 //Wiring events
 joinBtn.addEventListener("click", e => {
-    if (gameId === null)
-        gameId = txtgameId.value;
+    console.log(txtgameId.value);
+    if (gameId != null) {
+        alert("You already joined a game!");
+    }else if (txtgameId.value === ""){
+        alert("Please input a valid game ID");
+    } else {
+        if (gameId === null)
+            gameId = txtgameId.value;
 
-    const payLoad = {
-        "method": "join", 
-        "clientId": clientId,
-        "gameId": gameId,
-    }
+        const payLoad = {
+            "method": "join", 
+            "clientId": clientId,
+            "gameId": gameId,
+        }
 
-    ws.send(JSON.stringify(payLoad)); 
+        ws.send(JSON.stringify(payLoad));
+    }     
     
 });
 
 createBtn.addEventListener("click", e => {
-    myTurn = false;
-    const payLoad = {
-        "method": "create", 
-        "clientId": clientId,
-    }
+    if (gameId != null) {
+        alert("Game has already been created!");
+    } else {
+        myTurn = false;
+        const payLoad = {
+            "method": "create", 
+            "clientId": clientId,
+        }
 
-    ws.send(JSON.stringify(payLoad)); 
+        ws.send(JSON.stringify(payLoad));
+    }
 });
 
 addressBtn.addEventListener("click", e => {
@@ -82,6 +99,9 @@ addressBtn.addEventListener("click", e => {
     }
     else if (myTurn === true) {
         alert("It is not your turn to submit an address!"); 
+    }
+    else if (streetInput.value === "" || cityInput === "") {
+        alert("Address not complete."); 
     }
     else{
         const payLoad = {
@@ -104,6 +124,9 @@ guessBtn.addEventListener("click", e => {
     else if (myTurn === false) {
         alert("It is not your turn to guess...please submit an address"); 
     }
+    else if (addressSet === false) {
+        alert("Opponent has not sent an address yet.");
+    }
     else{
         const payLoad = {
             "method" : "guess",
@@ -125,10 +148,13 @@ ws.onmessage = message => {
         console.log("Client id set successful " + clientId);
     }
 
-    if (response.method === "create") {
-        gameId = response.game.id;
+    if (response.method === "create") {       
         successAlert("Games successfully created!"); 
-        console.log("Games successfully created with id " + gameId );
+
+        const d = document.createElement("div");
+        d.style.width = "400px"; 
+        d.textContent = response.game.id; 
+        gameidDiv.appendChild(d); 
     }
 
     if (response.method === "join") {
@@ -138,7 +164,7 @@ ws.onmessage = message => {
             divPlayers.removeChild(divPlayers.firstChild); 
 
         game.clients.forEach(c => {
-            const d = document.createElement("div");
+            const d = document.createElement("P");
             d.style.width = "200px"; 
             d.style.background = c.color; 
             d.textContent = c.name + " " + c.score; 
@@ -149,6 +175,7 @@ ws.onmessage = message => {
     }
 
     if (response.method === "set") {
+        addressSet = true;
         lat = response.lat; 
         lng = response.lng; 
 
@@ -158,17 +185,17 @@ ws.onmessage = message => {
     if (response.method === "guess"){
         const message = response.message;
         const game = response.game;
+        const state = response.state;
 
         while(divPlayers.firstChild)
             divPlayers.removeChild(divPlayers.firstChild); 
 
         game.clients.forEach(c => {
-            const d = document.createElement("div");
-            const p = document.createElement("p")
+            const d = document.createElement("P");
             d.style.width = "200px"; 
             d.style.background = c.color; 
             d.textContent = c.name + " " + c.score; 
-            divPlayers.appendChild(d);
+            divPlayers.appendChild(d); 
         });
 
         if (message === "Correct!") {
@@ -176,7 +203,7 @@ ws.onmessage = message => {
         }else if (message == "Winner!"){
             successAlert("Player Wins!!"); 
         } else {
-            alert("Player was incorect."); 
+            alert("Player was incorect. The correct state was " + state); 
         }
         
         if (myTurn === false) {
@@ -186,4 +213,9 @@ ws.onmessage = message => {
             myTurn = false;
         }
     }
+
+    if (response.method === "failed") {
+        const message = response.message; 
+        alert(message); 
+    }    
 }
