@@ -7,7 +7,7 @@ let addressSet = false;
 
 //Socket Connection
 const HOST = location.origin.replace(/^http/, 'ws'); 
-let ws = new WebSocket("ws://localhost:4001");
+let ws = new WebSocket(HOST);
 
 
 const createBtn = document.getElementById("createBtn");
