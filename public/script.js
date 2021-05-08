@@ -34,6 +34,7 @@ function initialize() {
         }
     );
 }
+google.maps.event.addDomListener(window, 'load', initialize);
 
 function alert(n) {
     $.bootstrapGrowl(n, {
