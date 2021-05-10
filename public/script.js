@@ -1,7 +1,7 @@
 let clientId = null;
 let gameId = null;
-let lat = null;
-let lng = null;
+let lat = 42.345573;
+let lng = -71.098326;
 let myTurn = true;
 let addressSet = false;
 
@@ -34,7 +34,6 @@ function initialize() {
         }
     );
 }
-google.maps.event.addDomListener(window, 'load', initialize);
 
 function alert(n) {
     $.bootstrapGrowl(n, {
